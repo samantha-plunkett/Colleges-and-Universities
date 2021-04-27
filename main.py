@@ -6,9 +6,19 @@ URL: Link to your web application online (see extra credit)
 
 Description:
 
-How I satisfied everyone of the features
-
-This program ... (a few sentences about your program and the queries and charts)
+This program uses Streamlit UI controls (selectbox, multiselect, radio) to create an interface with 1 map and 4 charts
+The default parameter is read_file
+Map: A map using custom values by developing data regarding counties
+    in a data frame that was then put on the map
+Chart 1: A bar chart using custom chart features by creating a dictionary and
+        iterating through a column in a data frame to count state occurrences
+Chart 2: A pie chart using custom chart features by creating a dictionary and
+        iterating through a column in a data frame to count county occurrences
+        and compare percentages of state counts for all states selected
+Chart 3: A bar chart using custom chart features by creating a dictionary and
+        iterating through a column in a data frame to count locale code occurrences
+Chart 4: A pie chart using custom chart features by creating a dictionary and
+        exploding values based on the radio button selection
 
 """
 import csv
@@ -16,54 +26,86 @@ import numpy as np
 import streamlit as st
 import pydeck as pdk
 import pandas as pd
+import mapbox as mb
 import matplotlib.pyplot as plt
-import random as random
 
 
-# datafile = "Postsecondary_School_Locations_-_Current (1).csv"
+# default parameter
 
-def read_file(datafile):
-    df = pd.read_csv(datafile)
+def read_file(file):
+    df = pd.read_csv(file)
     df_new = df.rename(columns={"X": "lon", "Y": "lat"})
     return df_new
 
 
-read_file("Postsecondary_School_Locations_-_Current (1).csv")
+# use of default parameter with default value
 
+datafile = "Postsecondary_School_Locations_-_Current (1).csv"
+read_file(datafile)
+
+
+# bar chart counting the number of colleges and universities in selected states
 
 def bar_chart(states, count, title):
-    plt.bar(states, count, color="plum", linewidth=4)
+    colors = ["thistle", "lightsteelblue", "mediumorchid", "powderblue", "slategrey", "lightskyblue"]
+    plt.bar(states, count, color=colors, linewidth=4)
     plt.title(title)
     plt.xlabel("State")
     plt.ylabel("Count of Universities and Colleges")
     return plt
 
 
+# pie chart showing the percentages of the number of colleges and universities in selected states
+
 def pie_chart(dict, title):
+    colors = ["thistle", "lightsteelblue", "mediumorchid", "powderblue", "slategrey", "lightskyblue"]
     values = dict.values()
     values_list = list(values)
 
-    EXPLODE_NUM = 0.05
+    EXPLODE = 0.05
     largest_value = max(values_list)
     largest = values_list.index(largest_value)
     explode = [0] * len(values_list)
-    explode[largest] = EXPLODE_NUM
+    explode[largest] = EXPLODE
 
     plt.figure()
-    plt.pie(dict.values(), labels=dict.keys(), explode=explode, autopct='%1.2f%%')
+    plt.pie(dict.values(), labels=dict.keys(), colors=colors, explode=explode, autopct='%1.2f%%')
     plt.title(title)
     plt.legend(dict.keys())
     return plt
 
 
+# pie chart showing the percentages of the number of colleges and universities in all locale codes
+
+def pie_chart2(dict, index):
+    EXPLODE = 0.1
+    explode = [0] * len(dict.values())
+    explode[index] = EXPLODE
+
+    colors = ["thistle", "lightsteelblue", "mediumorchid", "powderblue", "slategrey",
+              "lightskyblue", "plum", "gainsboro", "mediumslateblue",
+              "hotpink", "lightgreen", "dodgerblue"]
+
+    plt.figure()
+    plt.pie(dict.values(), labels=dict.keys(), colors=colors, explode=explode, autopct='%1.1f%%',
+            textprops={'fontsize': 8})
+    plt.title("")
+    plt.legend(dict.keys(), loc="upper left", prop={'size': 6})
+    return plt
+
+
+# bar chart showing the counts of colleges and universities in each locale code
+
 def bar_chart1(locales, count1, title):
     plt.figure()
-    plt.bar(locales, count1, color="blue", linewidth=4)
+    plt.bar(locales, count1, color="thistle", linewidth=4)
     plt.title(title)
     plt.xlabel("Locale Code")
     plt.ylabel("Count of Universities and Colleges")
     return plt
 
+
+# creating the map using a data frame and pandas features to plot the locations on the map
 
 def county_map(locations):
     map_df = pd.DataFrame(locations, columns=["school name", "X", "Y"])
@@ -74,17 +116,18 @@ def county_map(locations):
         zoom=9,
         pitch=0)
 
-    location_data = {"html": "University Name:<br/> <b>{school name}</br>",
-                     "style": {"backgroundColor": "grey",
-                               "color": "black"}
-                     }
+    location_data = {
+        "html": "University Name:<br/> <b>{school name}</b></br> Latitude: <b>{Y}</b><br/> Longitude: <b>{X}</b><br/>",
+        "style": {"backgroundColor": "steelblue",
+                  "color": "lavender"}
+    }
 
     layer_county_map = pdk.Layer('ScatterplotLayer',
                                  data=map_df,
                                  get_position='[X, Y]',
                                  get_radius=400,
                                  radius_scale=2,
-                                 get_color=[51, 51, 255],
+                                 get_color=[200, 66, 245],
                                  pickable=True
                                  )
 
@@ -97,17 +140,30 @@ def county_map(locations):
     st.pydeck_chart(county_map1)
 
 
+# main function to call all of the other functions
+
 def main():
+
+    # second application of the default parameter
+
     df_new = read_file("Postsecondary_School_Locations_-_Current (1).csv")
+
+    # creating a professional appearance on the side bar of Streamlit
 
     st.sidebar.title("Universities and Colleges")
     st.sidebar.header("Map of Colleges and Universities in the United States")
     st.sidebar.subheader("County Map Selector")
 
+    # data frame to list for county selection and Streamlit UI control
+
     county = df_new['NMCNTY'].unique().tolist()
     countySelection = st.sidebar.selectbox("Select a county: ", county)
 
-    st.write("You chose ", countySelection)
+    # letting the user know which county they selected
+
+    st.write("The county you selected is ", countySelection)
+
+    # creating a list to retrieve the name, lat, and lon of each school in a certain county
 
     locations = []
     for index, row in df_new.iterrows():
@@ -117,12 +173,20 @@ def main():
             name = row[4]
             locations.append((name, lon, lat))
 
+    # displaying the map on streamlit
+
     county_map(locations)
+
+    # adding a subheader for chart 1 and chart 2
 
     st.sidebar.subheader("College and University Count Bar Chart")
 
+    # data frame to list for state selection and Streamlit UI control
+
     states = df_new['STATE'].unique().tolist()
     stateSelection = st.sidebar.multiselect("Select states: ", states)
+
+    # creating a dictionary and iterating through the state column in the dataframe to add the states to the dictionary
 
     state_dict = {}
     for state in stateSelection:
@@ -131,19 +195,24 @@ def main():
             if item[1] == state:
                 count += 1
         state_dict[state] = count
-    # st.write(state_dict)
     dictionary = state_dict.keys()
     updated_dict = list(dictionary)
     new = ', '.join(updated_dict)
 
-    st.write("You chose ", new)
+    # creating a title for the bar chart
 
     title = f'Count of Colleges and Universities in {new}'
+
+    # adding a subheader for chart 3 and chart 4
 
     st.sidebar.subheader("Locale Code Selector")
 
     locales = df_new['LOCALE'].unique().tolist()
     localeSelection = st.sidebar.radio("Select a locale code: ", locales)
+
+    localeindex = locales.index(localeSelection)
+
+    # creating a dictionary and iterating through the locale column in the dataframe to add the locale codes to the dictionary
 
     locale_dict = {}
     for locale in locales:
@@ -153,18 +222,40 @@ def main():
                 count1 += 1
         locale_dict[locale] = count1
 
-    print(locale_dict)
-    st.write(state_dict)
-    dictionary1 = locale_dict.keys()
-    updated_dict1 = list(dictionary1)
-
-    st.write("You chose ", localeSelection)
+    # title for the chart 3
 
     title1 = f'Count of Colleges and Universities by Locale Code'
 
-    st.pyplot(bar_chart(state_dict.keys(), state_dict.values(), title))
-    st.pyplot(pie_chart(state_dict, title))
-    st.pyplot(bar_chart1(locale_dict.keys(), locale_dict.values(), title1))
+    # plotting the 4 graphs once a state is chosen for the state selection
+    # waiting to show any charts until a state has been selected
+
+    if len(stateSelection) > 0:
+
+        # letting the user know which states they selected
+
+        st.write("The states you selected are ", new)
+
+        # plotting the state bar chart
+
+        st.pyplot(bar_chart(state_dict.keys(), state_dict.values(), title))
+
+        # plotting the state pie chart
+
+        st.pyplot(pie_chart(state_dict, title))
+
+        # plotting the locale code bar chart
+
+        st.pyplot(bar_chart1(locale_dict.keys(), locale_dict.values(), title1))
+
+        # plotting the locale code pie chart
+
+        st.pyplot(pie_chart2(locale_dict, localeindex))
+
+        # letting the user know which locale code they selected and the
+        # number of colleges and universities in that locale code
+
+        st.write(f'You have selected locale code {localeSelection}.')
+        st.write(f'Locale code {localeSelection} has {locale_dict[localeSelection]} colleges and universities.')
 
 
 main()
