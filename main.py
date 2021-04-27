@@ -16,7 +16,6 @@ import numpy as np
 import streamlit as st
 import pydeck as pdk
 import pandas as pd
-import mapbox as mb
 import matplotlib.pyplot as plt
 import random as random
 
