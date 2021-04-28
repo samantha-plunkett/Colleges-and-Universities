@@ -5,6 +5,8 @@ Data: Colleges and Universities Data Set
 URL: https://share.streamlit.io/samantha-plunkett/colleges-and-universities/main/main.py
 
 For colors I used: https://matplotlib.org/stable/gallery/color/named_colors.html
+Learning about iterrows: https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.iterrows.html
+Learning about iteritems: https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.iteritems.html
 
 Description:
 
@@ -162,7 +164,8 @@ def main():
     # data frame to list for county selection and Streamlit UI control
 
     county = df_new['NMCNTY'].unique().tolist()
-    countySelection = st.sidebar.selectbox("Select a county: ", county)
+    sort_county = sorted(county)
+    countySelection = st.sidebar.selectbox("Select a county: ", sort_county)
 
     # letting the user know which county they selected
 
@@ -189,7 +192,8 @@ def main():
     # data frame to list for state selection and Streamlit UI control
 
     states = df_new['STATE'].unique().tolist()
-    stateSelection = st.sidebar.multiselect("Select states: ", states)
+    sorted_states = sorted(states)
+    stateSelection = st.sidebar.multiselect("Select states: ", sorted_states)
 
     # creating a dictionary and iterating through the state column in the dataframe to add the states to the dictionary
 
@@ -213,7 +217,8 @@ def main():
     st.sidebar.subheader("Locale Code Selector")
 
     locales = df_new['LOCALE'].unique().tolist()
-    localeSelection = st.sidebar.radio("Select a locale code: ", locales)
+    sorted_locales = sorted(locales)
+    localeSelection = st.sidebar.radio("Select a locale code: ", sorted_locales)
 
     localeIndex = locales.index(localeSelection)
 
