@@ -2,7 +2,9 @@
 Name: Samantha Plunkett
 CS230: Section SN1
 Data: Colleges and Universities Data Set
-URL: Link to your web application online (see extra credit)
+URL: https://share.streamlit.io/samantha-plunkett/colleges-and-universities/main/main.py
+
+For colors I used: https://matplotlib.org/stable/gallery/color/named_colors.html
 
 Description:
 
@@ -52,6 +54,8 @@ def bar_chart(states, count, title):
     plt.title(title)
     plt.xlabel("State")
     plt.ylabel("Count of Universities and Colleges")
+    plt.xticks(fontsize=9)
+    plt.yticks(fontsize=9)
     return plt
 
 
@@ -89,7 +93,7 @@ def pie_chart2(dict, index):
     plt.figure()
     plt.pie(dict.values(), labels=dict.keys(), colors=colors, explode=explode, autopct='%1.1f%%',
             textprops={'fontsize': 8})
-    plt.title("")
+    plt.title("College and University Counts by Locale Code")
     plt.legend(dict.keys(), loc="upper left", prop={'size': 6})
     return plt
 
@@ -102,6 +106,8 @@ def bar_chart1(locales, count1, title):
     plt.title(title)
     plt.xlabel("Locale Code")
     plt.ylabel("Count of Universities and Colleges")
+    plt.xticks(fontsize=9)
+    plt.yticks(fontsize=9)
     return plt
 
 
@@ -143,7 +149,6 @@ def county_map(locations):
 # main function to call all of the other functions
 
 def main():
-
     # second application of the default parameter
 
     df_new = read_file("Postsecondary_School_Locations_-_Current (1).csv")
@@ -210,7 +215,7 @@ def main():
     locales = df_new['LOCALE'].unique().tolist()
     localeSelection = st.sidebar.radio("Select a locale code: ", locales)
 
-    localeindex = locales.index(localeSelection)
+    localeIndex = locales.index(localeSelection)
 
     # creating a dictionary and iterating through the locale column in the dataframe to add the locale codes to the dictionary
 
@@ -230,7 +235,6 @@ def main():
     # waiting to show any charts until a state has been selected
 
     if len(stateSelection) > 0:
-
         # letting the user know which states they selected
 
         st.write("The states you selected are ", new)
@@ -249,7 +253,7 @@ def main():
 
         # plotting the locale code pie chart
 
-        st.pyplot(pie_chart2(locale_dict, localeindex))
+        st.pyplot(pie_chart2(locale_dict, localeIndex))
 
         # letting the user know which locale code they selected and the
         # number of colleges and universities in that locale code
